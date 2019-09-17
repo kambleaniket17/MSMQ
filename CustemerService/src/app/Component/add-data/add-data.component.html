@@ -1,0 +1,64 @@
+<!-- <div  > -->
+<mat-radio-group aria-label="Select an option" [(ngModel)]="favoriteSeason"   fxLayoutAlign="center center">
+  <mat-radio-button value="1">Customer</mat-radio-button>
+  <mat-radio-button value="2">Merchant</mat-radio-button>
+</mat-radio-group>
+
+<!-- </div> -->
+
+<div class="input-container" fxLayout="row" fxLayoutAlign="center center">
+  
+  <div *ngIf="favoriteSeason=='1'"  >
+    <mat-card class="displayCard"  style="background-color: cornsilk;width: 105%">
+      <form [formGroup]="CustomerForm">
+        <div>
+                <label>Name: </label></div>
+                <input type="text" formControlName="Name">
+             
+            
+                <div><label>Mobile Number: </label>
+                </div>
+                  <input type="text" formControlName="Mobile">
+               
+                 <div> <label>Email:</label>
+                 </div>
+                  <input type="text" formControlName="Email">
+                
+                
+                <div>
+                  <br>
+                <button mat-raised-button style="background-color: seashell" (click)="AddCustomer()">Add</button>
+              </div>
+        </form>
+      </mat-card>
+  </div>
+  <div *ngIf="favoriteSeason=='2'">
+    <mat-card class="displayCard" fxLayout="row" fxLayoutAlign="center center" style="background-color: darkgrey;width: 105%">
+      <form [formGroup]="MerchantForm">
+        <div>
+                <label>Name: </label></div>
+                <input type="text" formControlName="Name">
+             
+            
+                <div><label>Mobile Number: </label>
+                </div>
+                  <input type="text" formControlName="Mobile">
+               
+                 <div> <label>Email:</label>
+                 </div>
+                  <input type="text" formControlName="Email">
+                  <div> <label>City:</label>
+                  </div>
+                   <input type="text" formControlName="City">
+                   <div> <label>Product:</label>
+                   </div>
+                    <input type="text" formControlName="Product">
+                
+                <div>
+                  <br>
+                <button mat-raised-button style="background-color: seashell" (click)="AddMerchant()">Add</button>
+              </div>
+        </form>
+      </mat-card>
+  </div>
+</div>
