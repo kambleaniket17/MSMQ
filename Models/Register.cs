@@ -6,9 +6,9 @@
     using System.Text;
 
     /// <summary>
-    /// Class Customer
+    /// Register Model
     /// </summary>
-    public class Customer
+    public class Register
     {
         /// <summary>
         /// Gets or sets the name.
@@ -16,7 +16,7 @@
         /// <value>
         /// The name.
         /// </value>
-        [Required(ErrorMessage = "Name is required.")]
+        [Required]
         public string Name { get; set; }
 
         /// <summary>
@@ -36,8 +36,18 @@
         /// <value>
         /// The email.
         /// </value>
-        [Required(ErrorMessage = "Email is required.")]
+        [Required]
         [EmailAddress]
         public string Email { get; set; }
+
+        /// <summary>
+        /// Gets or sets the password.
+        /// </summary>
+        /// <value>
+        /// The password.
+        /// </value>
+        [Required]
+        [MinLength(3)]
+        public string Password { get; set; }
     }
 }
