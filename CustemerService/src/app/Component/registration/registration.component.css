@@ -1,0 +1,13 @@
+.displayCard {
+    width: 70%;
+    background-color: cadetblue
+   }
+   .main{
+    height: 100vh;
+  }
+   @media screen and (min-width: 1000px) {
+    .displayCard {
+      width: 50%;
+      background-color: cadetblue
+     }
+    }

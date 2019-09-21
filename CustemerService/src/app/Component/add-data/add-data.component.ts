@@ -10,21 +10,23 @@ import { ServiceService } from 'src/app/Service/service.service';
   styleUrls: ['./add-data.component.css']
 })
 export class AddDataComponent implements OnInit {
+  toggle:boolean=false;
   favoriteSeason: string;
   Name:string;
   seasons: string[] = ['Customer', 'Merchant'];
   CustomerForm=new FormGroup({
    Name:new FormControl(),
    Mobile:new FormControl(),
-   Email:new FormControl()
+   Email:new FormControl(),
+   City:new FormControl(),
+   Product:new FormControl()
   })
-  MerchantForm=new FormGroup({
-    Name:new FormControl(),
-    Mobile:new FormControl(),
-    Email:new FormControl(),
-    City:new FormControl(),
-    Product:new FormControl()
-  })
+  // MerchantForm=new FormGroup({
+  //   Name:new FormControl(),
+  //   Mobile:new FormControl(),
+  //   Email:new FormControl(),
+   
+  // })
   constructor(private service:ServiceService) { }
 
   ngOnInit() {
@@ -35,18 +37,31 @@ export class AddDataComponent implements OnInit {
   }
   AddCustomer(){
     
-     this.service.AddCustomer(this.CustomerForm.value).subscribe(data=>{
-       console.log(data);
-       
+     this.service.AddCustomer(this.CustomerForm.value).subscribe(Response=>{
+       if(Response==true){
+         alert("Added Successfully")
+         this.CustomerForm.reset();
+       }
      })
+    
+    
   }
   AddMerchant(){
-    this.service.AddMerchant(this.MerchantForm.value).subscribe(data=>{
-    console.log(data);
     
+    this.service.AddMerchant(this.CustomerForm.value).subscribe(data=>{
+      console.log(data);
+      this.CustomerForm.reset();
     })
-    
+   
+   
+ }
+
+  customerInfo(){
+    this.toggle=false;
+
   }
-  
+  merchantInfo(){
+this.toggle=true;
+  }
 
 }

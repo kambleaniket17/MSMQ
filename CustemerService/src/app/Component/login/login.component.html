@@ -1,0 +1,28 @@
+<div fxLayout="row" fxLayoutAlign="center center" class="main">
+  <mat-card class="displayCard">
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <h1 class="display-3">Login Form</h1>
+    </div>
+     
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <form [formGroup]="LoginForm">
+          <div >
+              <mat-form-field appearance="outline" fxLayout="row">
+                <mat-label>UserName</mat-label>
+              <input matInput type="text" placeholder="UserName" formControlName="UserName">
+            </mat-form-field>
+            </div>
+            <div>
+                <mat-form-field appearance="outline">
+                  <mat-label>Password</mat-label>
+                <input matInput type="password" placeholder="Password" formControlName="Password">
+              </mat-form-field>
+              </div>
+        <div >
+          <br>
+          <button mat-button style="background-color: seashell" (click)="Login()">Add</button>
+        </div>
+      </form>
+    </div>
+  </mat-card>
+</div>

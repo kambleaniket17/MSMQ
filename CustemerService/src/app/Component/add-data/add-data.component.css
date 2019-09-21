@@ -1,6 +1,4 @@
-.displayCard{
-  display: flex
-}
+
 .example-radio-group {
   display: flex;
   flex-direction: column;
@@ -9,4 +7,19 @@
 
 .example-radio-button {
   margin: 5px;
+}
+.main{
+  height: 100vh;
+}
+.displayCard {
+  width: 70%;
+  background-color: cadetblue
+ }
+ @media screen and (min-width: 1000px) {
+  .displayCard {
+    width: 50%;
+    background-color: cadetblue
+   }
+   
+ 
 }

@@ -1,64 +1,60 @@
-<!-- <div  > -->
-<mat-radio-group aria-label="Select an option" [(ngModel)]="favoriteSeason"   fxLayoutAlign="center center">
-  <mat-radio-button value="1">Customer</mat-radio-button>
-  <mat-radio-button value="2">Merchant</mat-radio-button>
-</mat-radio-group>
-
-<!-- </div> -->
-
-<div class="input-container" fxLayout="row" fxLayoutAlign="center center">
-  
-  <div *ngIf="favoriteSeason=='1'"  >
-    <mat-card class="displayCard"  style="background-color: cornsilk;width: 105%">
+<div fxLayout="row" fxLayoutAlign="center center" class="main">
+  <mat-card class="displayCard">
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <h1 class="display-3">Add Data</h1>
+    </div>
+     
+    <div fxLayout="row" fxLayoutAlign="center center">
       <form [formGroup]="CustomerForm">
-        <div>
-                <label>Name: </label></div>
-                <input type="text" formControlName="Name">
-             
-            
-                <div><label>Mobile Number: </label>
-                </div>
-                  <input type="text" formControlName="Mobile">
-               
-                 <div> <label>Email:</label>
-                 </div>
-                  <input type="text" formControlName="Email">
-                
-                
-                <div>
-                  <br>
-                <button mat-raised-button style="background-color: seashell" (click)="AddCustomer()">Add</button>
+          <div >
+              <mat-form-field fxLayout="row" appearance="outline">
+                  <mat-label>Name</mat-label>
+              <input matInput type="text" placeholder="Name" formControlName="Name">
+            </mat-form-field>
+            </div>
+
+            <div >
+                <mat-form-field appearance="outline" fxLayout="row">
+                    <mat-label>Mobile</mat-label>
+                <input matInput type="text" placeholder="Mobile" formControlName="Mobile">
+              </mat-form-field>
               </div>
-        </form>
-      </mat-card>
-  </div>
-  <div *ngIf="favoriteSeason=='2'">
-    <mat-card class="displayCard" fxLayout="row" fxLayoutAlign="center center" style="background-color: darkgrey;width: 105%">
-      <form [formGroup]="MerchantForm">
-        <div>
-                <label>Name: </label></div>
-                <input type="text" formControlName="Name">
-             
-            
-                <div><label>Mobile Number: </label>
+              <div >
+                  <mat-form-field appearance="outline" fxLayout="row">
+                      <mat-label>Email</mat-label>
+                  <input matInput type="text" placeholder="Email" formControlName="Email">
+                </mat-form-field>
                 </div>
-                  <input type="text" formControlName="Mobile">
-               
-                 <div> <label>Email:</label>
-                 </div>
-                  <input type="text" formControlName="Email">
-                  <div> <label>City:</label>
-                  </div>
-                   <input type="text" formControlName="City">
-                   <div> <label>Product:</label>
-                   </div>
-                    <input type="text" formControlName="Product">
-                
-                <div>
-                  <br>
-                <button mat-raised-button style="background-color: seashell" (click)="AddMerchant()">Add</button>
+        <div>
+          <mat-radio-group aria-label="Select an option" fxLayoutAlign="center center">
+            <mat-radio-button  (click)="customerInfo()">Customer</mat-radio-button>
+            <mat-radio-button value="2" (click)="merchantInfo()">Merchant</mat-radio-button>
+          </mat-radio-group>
+        </div>
+        <div *ngIf="toggle">
+            <div >
+                <mat-form-field appearance="outline" fxLayout="row">
+                    <mat-label>City</mat-label>
+                <input matInput type="text" placeholder="City" formControlName="City">
+              </mat-form-field>
               </div>
-        </form>
-      </mat-card>
-  </div>
+              <div >
+                  <mat-form-field appearance="outline" fxLayout="row">
+                    <mat-label>Product</mat-label>
+                  <input matInput type="text" placeholder="Product" formControlName="Product">
+                </mat-form-field>
+                </div>
+          <div>
+              <br>
+              <button mat-button style="background-color: seashell" (click)="AddMerchant()">Add</button>
+            </div>
+        </div>
+
+        <div *ngIf="!toggle">
+          <br>
+          <button mat-button style="background-color: seashell" (click)="AddCustomer()">Add</button>
+        </div>
+      </form>
+    </div>
+  </mat-card>
 </div>

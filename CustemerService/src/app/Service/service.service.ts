@@ -16,6 +16,19 @@ export class ServiceService {
   }
   AddMerchant(data){
     console.log(data,environment.Url);
-   return this.httpService.post("https://localhost:44355/api/User/AddMerchant",data);
+   return this.httpService.post(environment.Url + "User/AddMerchant",data);
+  }
+  Login(data){
+   return this.httpService.post(environment.Url + "Admin/login",data);
+  }
+  Register(data){
+    console.log(data);
+    
+    return this.httpService.post(environment.Url + "Admin/Register",data);
+  }
+  UpdateProduct(data){
+    console.log(data);
+    
+    return this.httpService.post(environment.Url + "",data);
   }
 } 

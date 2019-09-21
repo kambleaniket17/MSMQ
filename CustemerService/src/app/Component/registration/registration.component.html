@@ -1,0 +1,43 @@
+<div fxLayout="row" fxLayoutAlign="center center" class="main">
+  <mat-card class="displayCard">
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <h1 class="display-3">Registration Form</h1>
+    </div>
+     
+    <div fxLayout="row" fxLayoutAlign="center center">
+      <form [formGroup]="RegistrationForm">
+        
+          <div >
+            <mat-form-field appearance="outline" fxLayout="row">
+              <mat-label>Name</mat-label>
+            <input matInput type="text" placeholder="Name" formControlName="Name">
+          </mat-form-field>
+          </div>
+          <div>
+              <mat-form-field appearance="outline" fxLayout="row">
+                <mat-label>Email</mat-label>
+              <input matInput type="text" placeholder="Email" formControlName="Email">
+            </mat-form-field>
+            </div>
+            <div>
+                <mat-form-field appearance="outline" fxLayout="row">
+                    <mat-label>Mobile</mat-label>
+                <input matInput type="text" placeholder="Mobile" formControlName="Mobile">
+              </mat-form-field>
+              </div>
+            
+                <div>
+                    <mat-form-field appearance="outline" fxLayout="row">
+                        <mat-label>Password</mat-label>
+                    <input matInput type="password" placeholder="Password" formControlName="Password">
+                  </mat-form-field>
+                  </div>
+
+        <div >
+          <br>
+          <button mat-button style="background-color: seashell" (click)="Register()">Register</button>
+        </div>
+      </form>
+    </div>
+  </mat-card>
+</div>
