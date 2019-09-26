@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Text;
+
     /// <summary>
     /// product Information model
     /// </summary>
@@ -14,7 +15,7 @@
         /// <value>
         /// The name of the product.
         /// </value>
-        public string ProductId { get; set; }
+        public int ProductId { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the product.
@@ -30,7 +31,7 @@
         /// <value>
         /// The price.
         /// </value>
-        public string Price { get; set; }
+        public double Price { get; set; }
 
         /// <summary>
         /// Gets or sets the quantity.
@@ -38,7 +39,7 @@
         /// <value>
         /// The quantity.
         /// </value>
-        public string Quantity { get; set; }
+        public int Quantity { get; set; }
 
         /// <summary>
         /// Gets or sets the total amount.
@@ -46,7 +47,7 @@
         /// <value>
         /// The total amount.
         /// </value>
-        public string TotalAmount { get; set; }
+        public double TotalAmount { get; set; }
 
     }
 }

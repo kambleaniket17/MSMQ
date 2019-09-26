@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Mail;
@@ -82,14 +83,66 @@
         }
 
         /// <summary>
-        /// Gets the redis time.
+        /// Adds the products data.
         /// </summary>
-        /// <returns>time</returns>
-        [HttpGet]
-        [Route("getRedis")]
-        public string GetRedisTime()
+        /// <param name="productInformation">The productInformation.</param>
+        [HttpPost]
+        [Route("addProduct")]
+        public async Task<IActionResult> AddProduct(IFormFile file)
         {
-           return this.getCustomer.GetRedis();
+            try
+            {
+                var result = await this.getCustomer.AddProduct(file);
+                return this.Ok(result);
+            }
+            catch(Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+           
         }
+
+        /// <summary>
+        /// Adds the product.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("updateProduct")]
+        public async Task<IActionResult> UpdateProduct(IFormFile file)
+        {
+            try
+            {
+                var result = await this.getCustomer.UpdateProduct(file);
+                return this.Ok(result);
+            }
+            catch (Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+
+        }
+
+        /// <summary>
+        /// Updates the product.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>boolean result</returns>
+        [HttpDelete]
+        [Route("DeleteProduct")]
+        public async Task<IActionResult> DeleteProduct(IFormFile file)
+        {
+            try
+            {
+                var result = await this.getCustomer.DeleteProduct(file);
+                return this.Ok(result);
+            }
+            catch(Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+          
+        }
+
     }
 }

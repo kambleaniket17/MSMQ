@@ -2,15 +2,21 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.SqlClient;
     using System.IdentityModel.Tokens.Jwt;
+    using System.IO;
     using System.Linq;
     using System.Net;
     using System.Net.Mail;
     using System.Security.Claims;
     using System.Text;
+    using System.Threading.Tasks;
     using BusinessLogic.Interfaces;
+    using Bytescout.Spreadsheet;
     using Experimental.System.Messaging;
+    using GemBox.Spreadsheet;
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
@@ -18,6 +24,8 @@
     using Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using OfficeOpenXml;
+    using RepositoryLayer.Interface;
     using ServiceStack.Redis;
     using StackExchange.Redis;
 
@@ -29,27 +37,17 @@
     public class EmployeeDatabase : IGetCustomer
     {
         /// <summary>
-        /// Gets or sets the application settings.
+        /// The get customer
         /// </summary>
-        /// <value>
-        /// The application settings.
-        /// </value>
-        private AppSettings AppSettings { get; set; }
+        private readonly IRepository repository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EmployeeDatabase"/> class.
+        /// Initializes a new instance of the <see cref="UserController"/> class.
         /// </summary>
-        /// <param name="settings">The settings.</param>
-        public EmployeeDatabase(IOptions<AppSettings> settings)
+        /// <param name="getCustomer">The get customer.</param>
+        public EmployeeDatabase(IRepository repository)
         {
-            AppSettings = settings.Value;
-        }
-
-        /// <summary>
-        /// Default Constructor
-        /// </summary>
-        public EmployeeDatabase()
-        {
+            this.repository = repository;
         }
 
 
@@ -61,33 +59,10 @@
         /// <exception cref="Exception">Check the Exceptions</exception>
         public IEnumerable<Customer> GetCustomers()
         {
-            List<Customer> customers = new List<Customer>();
+
             try
             {
-                using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                {
-                    SqlCommand sqlCommand = new SqlCommand("getData", connection); //// Adding Store procedure Name
-                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                    connection.Open();
-
-                    SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-                    ////Reading Records
-                    while (sqlDataReader.Read())
-                    {
-                        Customer customer = new Customer();
-
-                        customer.Name = sqlDataReader["Name"].ToString();
-                        customer.Mobile = sqlDataReader["Mobile"].ToString();
-                        customer.Email = sqlDataReader["Email"].ToString();
-
-                        //// Add The Data into list
-                        customers.Add(customer);
-                    }
-
-                    connection.Close();
-                }
-
-                return customers;
+                return repository.GetCustomers();
             }
             catch (Exception exception)
             {
@@ -102,33 +77,10 @@
         /// <exception cref="Exception">Check The Exceptions</exception>
         public IEnumerable<Merchant> GetAllMerchant()
         {
-            var merchants = new List<Merchant>();
+
             try
             {
-                using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                {
-                    SqlCommand sqlCommand = new SqlCommand("getMerchantData", connection); //// Adding Store procedure Name
-                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                    connection.Open();
-                    //// Reading Records
-                    SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-                    while (sqlDataReader.Read())
-                    {
-                        Merchant merchant = new Merchant();
-                        //// Read The records
-                        merchant.Name = sqlDataReader["Name"].ToString();
-                        merchant.Mobile = sqlDataReader["Mobile"].ToString();
-                        merchant.Email = sqlDataReader["Email"].ToString();
-                        merchant.City = sqlDataReader["City"].ToString();
-                        merchant.Product = sqlDataReader["Product"].ToString();
-                        //// Adding Data Into list
-                        merchants.Add(merchant);
-                    }
-
-                    connection.Close();
-                }
-
-                return merchants;
+                return repository.GetAllMerchant();
             }
             catch (Exception exception)
             {
@@ -146,21 +98,7 @@
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                {
-                    SqlCommand sqlCommand = new SqlCommand("AddData", connection); //// Adding Store procedure Name
-                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                    //// Adding Parameters
-                    sqlCommand.Parameters.AddWithValue("@Name", cutomer.Name);
-                    sqlCommand.Parameters.AddWithValue("@Mobile", cutomer.Mobile);
-                    sqlCommand.Parameters.AddWithValue("@Email", cutomer.Email);
-
-                    connection.Open();
-                    sqlCommand.ExecuteNonQuery();
-                    connection.Close();
-                }
-
-                return true;
+                return repository.AddCustomer(cutomer);
             }
             catch (Exception exception)
             {
@@ -178,188 +116,11 @@
         {
             try
             {
-                using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                {
-                    SqlCommand sqlCommand = new SqlCommand("AddMerchantData", connection); //// Adding Store procedure Name
-                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                    sqlCommand.Parameters.AddWithValue("@Name", merchant.Name);
-                    sqlCommand.Parameters.AddWithValue("@Mobile", merchant.Mobile);
-                    sqlCommand.Parameters.AddWithValue("@Email", merchant.Email);
-                    sqlCommand.Parameters.AddWithValue("@City", merchant.City);
-                    sqlCommand.Parameters.AddWithValue("@Product", merchant.Product);
-                    connection.Open();
-                    sqlCommand.ExecuteNonQuery();
-                    connection.Close();
-                }
-                //// Calling SendEmail Method
-                this.SendEmail(merchant);
+                repository.AddMerchantData(merchant);
             }
             catch (Exception exception)
             {
                 throw new Exception(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Sends the email.
-        /// </summary>
-        /// <param name="merchant">The merchant.</param>
-        /// <returns>Boolean Result</returns>
-        /// <exception cref="Exception">Check The Exceptions</exception>
-        public void SendEmail(Merchant merchant)
-        {
-            try
-            {
-                string msmqQueuePath = @".\Private$\Mail"; //// Messaging Queue Path
-
-                MessageQueue msmqQueue = new MessageQueue();
-
-                //// Checking Message Queue Path Exist or Not
-                if (!MessageQueue.Exists(msmqQueuePath))
-                {
-                    msmqQueue = MessageQueue.Create(msmqQueuePath);
-                }
-                else
-                {
-                    //// Adding Message Queue Path if not exist 
-                    msmqQueue = new MessageQueue(msmqQueuePath);
-                }
-
-                msmqQueue.Formatter = new BinaryMessageFormatter();
-                var jsondata = JsonConvert.SerializeObject(merchant);
-                //// Send Data into MessageQueue
-                msmqQueue.Send(jsondata);
-
-                //// Calling SendEmails Method
-                SendEmails();
-            }
-            catch (Exception exception)
-            {
-                throw new Exception(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Sends the emails.
-        /// </summary>
-        /// <returns>Boolean result</returns>
-        /// <exception cref="Exception">Check the Exceptions</exception>
-        public void SendEmails()
-        {
-            try
-            {
-                string messageQueuePath = @".\Private$\Mail"; //// Messaging Queue Path
-                //Create MessageQueue And Set Properties
-                MessageQueue msmqQueue = new MessageQueue(messageQueuePath);
-                msmqQueue.Formatter = new BinaryMessageFormatter();
-                msmqQueue.MessageReadPropertyFilter.SetAll();
-                msmqQueue.ReceiveCompleted += new
-                ReceiveCompletedEventHandler(MyReceiveCompleted);
-                msmqQueue.BeginReceive();
-            }
-            catch (Exception exception)
-            {
-                throw new Exception(exception.Message);
-            }
-
-        }
-
-        /// <summary>
-        /// Meyhod for Send Message
-        /// </summary>
-        /// <param name="messages">The messages.</param>
-        /// <param name="AppSettings">The AppSettings.</param>
-        public void SendingMessage(string messages, AppSettings AppSettings)
-        {
-            try
-            {
-                //// Create MailMessage And smtp client 
-                MailMessage message = new MailMessage();
-                SmtpClient smtp = new SmtpClient();
-                message.From = new MailAddress(AppSettings.UserId);
-                message.To.Add(new MailAddress(AppSettings.ToAddress));
-                message.Subject = "Notification From Server";
-                message.IsBodyHtml = true;
-
-                var data = JObject.Parse(messages);
-
-                message.IsBodyHtml = true;
-
-                //// Add Table with Data into Body
-                string messageBody = " <table border=" + 1 + " cellpadding=" + 0 + " cellspacing=" + 0 + " width = " + 400 + "><tr bgcolor='#4da6ff'><td><b>Name</b></td> <td> <b> Mobile</b> </td>" +
-                    "<td> <b> Email</b> </td><td> <b> City</b> </td><td> <b> Product</b> </td></tr>";
-
-                messageBody += "<tr><td>" + data["Name"].ToString() + "</td><td> " + data["Mobile"].ToString() + "</td> <td> " + data["Email"].ToString() + "</td><td> " + data["City"].ToString() + "</td><td> " + data["Product"].ToString() + "</td></tr>";
-
-                messageBody += "</table>";
-                message.Body = "Added New Merchant to list. Data of Merchants Are:<br />" + messageBody + "<br />";
-                smtp.Port = AppSettings.SMTPPort;
-                smtp.Host = AppSettings.SmtpClient;
-                smtp.EnableSsl = true;
-                smtp.UseDefaultCredentials = false;
-                smtp.Credentials = new NetworkCredential(AppSettings.UserId, AppSettings.Password);
-                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
-                smtp.Send(message);
-
-            }
-            catch (Exception exception)
-            {
-                throw new Exception(exception.Message);
-
-            }
-        }
-
-        /// <summary>
-        /// Delegates Method for Receive MSMQ message
-        /// </summary>
-        /// <param name="source">The source.</param>
-        /// <param name="asyncResult">The asyncResult.</param>
-        private void MyReceiveCompleted(Object source,
-             ReceiveCompletedEventArgs asyncResult)
-        {
-            //// Connect to the queue.
-            try
-            {
-                //// retrive the data From MessageQueue
-                MessageQueue messageQueue = (MessageQueue)source;
-
-                Message retriveMessage = messageQueue.EndReceive(asyncResult.AsyncResult);
-
-                //// Storing Body of MessageQueue into Variable
-                string message = retriveMessage.Body.ToString();
-
-                messageQueue.BeginReceive();
-                var appSettings = AppSettings;
-                EmployeeDatabase employeeDatabase = new EmployeeDatabase();
-                employeeDatabase.SendingMessage(message, appSettings);
-            }
-            catch (Exception exception)
-            {
-                throw new Exception(exception.Message);
-            }
-        }
-
-        /// <summary>
-        /// Method for Set And Get Redis Catche
-        /// </summary>
-        /// <returns>String Time</returns>
-        public string GetRedis()
-        {
-            //// create Redis client
-            using (var redis = new RedisClient())
-            {
-                //// Check Null or Not
-                if (redis.Get("Time") == null)
-                {
-                    //// Set Redis
-                    redis.Set("Time", DateTime.Now.ToString());
-                }
-                //// Get Redis And Return Data
-                var cache = redis.Get("Time");
-                var stringFromByteArray = System.Text.Encoding.UTF8.GetString(cache);
-                redis.Remove("Time");
-                redis.Set("Time", DateTime.Now.ToString());
-                return stringFromByteArray;
             }
         }
 
@@ -370,30 +131,7 @@
         /// <returns>string token And Time</returns>
         public List<string> Login(Login login)
         {
-            var Result = string.Empty;
-            string jsonString = string.Empty;
-            var list = new List<string>();
-            //// Call Check Method For Checking user present or not
-            List<Register> user = Check(login);
-            if (user.Count != 0)
-            {
-                //// Calling Redis Method
-                 Result = GetRedis();
-                //// Creating Token
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new System.Security.Claims.ClaimsIdentity(new Claim[] { new Claim("UserId", login.UserName) }),
-                    Expires = DateTime.UtcNow.AddDays(1),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.AppSettings.JWT_Secret)), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var securityToken = tokenHandler.CreateToken(tokenDescriptor);
-                var token = tokenHandler.WriteToken(securityToken);
-                jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(token);
-                list.Add(Result);
-                list.Add(jsonString);
-            }
-            return list;
+            return repository.Login(login);
         }
 
         /// <summary>
@@ -405,109 +143,193 @@
         {
             try
             {
-                if(register != null)
-                {
-                    //// Sql Add Using Sp
-                    using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                    {
-                        SqlCommand sqlCommand = new SqlCommand("RegisterUser", connection); //// Adding Store procedure Name
-                        sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                        sqlCommand.Parameters.AddWithValue("@Name", register.Name);
-                        sqlCommand.Parameters.AddWithValue("@Mobile", register.Mobile);
-                        sqlCommand.Parameters.AddWithValue("@Email", register.Email);
-                        sqlCommand.Parameters.AddWithValue("@Password", register.Password);
-                        connection.Open();
-                        sqlCommand.ExecuteNonQuery();
-                        connection.Close();
-                    }
-                    return true;
-                }
-                return false;
+                return repository.Register(register);
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 throw new Exception(exception.Message);
-               
+
             }
-        
+
         }
 
         /// <summary>
-        /// Checking Valide User
+        /// Adds the product.
         /// </summary>
-        /// <param name="login">The login.</param>
-        /// <returns>Data of User</returns>
-        public List<Register> Check(Login login)
+        /// <param name="file">The .file</param>
+        /// <returns>
+        /// Boolean Result
+        /// </returns>
+        public async Task<bool> AddProduct(IFormFile file)
         {
-            try
+            var list = new List<ProductInformation>();
+            var products = new List<ProductInformation>();
+            //// read the Excel file
+            using (var stream = new MemoryStream())
             {
-                var user = new List<Register>();
-                if (login.UserName !=null && login.Password != null)
-                {
-                   
-                  
-                        using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                        {
-                            SqlCommand sqlCommand = new SqlCommand("CheckAuthorize", connection); //// Adding Store procedure Name
-                            sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                       
-                        sqlCommand.Parameters.AddWithValue("@UserName", login.UserName);
-                        sqlCommand.Parameters.AddWithValue("@Password", login.Password);
-                        connection.Open();
-                            //// Reading Records
-                            SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
-                            while (sqlDataReader.Read())
-                            {
-                            Register register = new Register();
-                                //// Read The records
-                                register.Name = sqlDataReader["Name"].ToString();
-                                register.Mobile = sqlDataReader["Mobile"].ToString();
-                                register.Email = sqlDataReader["Email"].ToString();
-                                register.Password = sqlDataReader["Password"].ToString();
-                            //// Adding Data Into list
-                            user.Add(register);
-                            }
+               
+               await file.CopyToAsync(stream);
 
-                            connection.Close();
+                using (var package = new ExcelPackage(stream))
+                {
+                    //// create worksheet
+                    OfficeOpenXml.ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+                    //// iterate record without header
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        list.Add(new ProductInformation
+                        {
+                            ProductId = int.Parse(worksheet.Cells[row,1].Value.ToString().Trim()),
+                            ProductName = worksheet.Cells[row, 2].Value.ToString().Trim(),
+                            Price = int.Parse(worksheet.Cells[row, 3].Value.ToString().Trim()),
+                            Quantity = int.Parse(worksheet.Cells[row,4].Value.ToString().Trim())
+                          
+                        });
+                       
+                    }
+                   foreach(var product in list)
+                    {
+                        if(product.Quantity >= 1)
+                        {
+                            product.TotalAmount = product.Quantity * product.Price;
                         }
+                        products.Add(product);
+                    }
+
+                }
+            }
+           return await this.repository.AddProduct(products);
+           
+        }
+
+        /// <summary>
+        /// Updates the product.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>
+        /// boolean result
+        /// </returns>
+        public async Task<List<bool>> UpdateProduct(IFormFile file)
+        {
+           // bool updateproductResult;
+            var list = new List<ProductInformation>();
+            var products = new List<ProductInformation>();
+            var addProducts = new List<ProductInformation>();
+            var updateProducts = new List<ProductInformation>();
+            var response = new List<bool>();
+            using (var stream = new MemoryStream())
+            {
+               await file.CopyToAsync(stream);
+                
+                using (var package = new ExcelPackage(stream))
+                {
+                    //// Create Excelsheet
+                    OfficeOpenXml.ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+                    //// iterate record without header
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        list.Add(new ProductInformation
+                        {
+                            ProductId = int.Parse(worksheet.Cells[row, 1].Value.ToString().Trim()),
+                            ProductName = worksheet.Cells[row, 2].Value.ToString().Trim(),
+                            Price = int.Parse(worksheet.Cells[row, 3].Value.ToString().Trim()),
+                            Quantity = int.Parse(worksheet.Cells[row, 4].Value.ToString().Trim())
+
+                        });
+
+                    }
+                    foreach (var product in list)
+                    {
+                        if (product.Quantity >= 1)
+                        {
+                            product.TotalAmount = product.Quantity * product.Price;
+                        }
+                        products.Add(product);
+                    }
+                }
+               // list.Clear();
+               // list = this.repository.GetProductDetails();
+
+              //  var abc = list.Except(products);
+                foreach (var product in products)
+                {
+                   var result = CheckProduct(product.ProductId);
+                    if(result == true)
+                    {
+                        updateProducts.Add(product);
+                    }
+                    else
+                    {
+                        addProducts.Add(product);
+                    }
                     
                 }
-                return user;
+                  response.Add(await this.repository.AddProduct(addProducts));
+                response.Add(await this.repository.UpdateProduct(updateProducts));
             }
-            catch (Exception exception)
-            {
-                throw new Exception(exception.Message);
-            }
+            return response;
         }
 
         /// <summary>
-        /// Adding Product
+        /// Checks the product.
         /// </summary>
-        /// <param name="merchant">productInformation</param>
-        public void AddProduct(ProductInformation productInformation)
+        /// <param name="productId">The product identifier.</param>
+        /// <returns>boolean result</returns>
+        public bool CheckProduct(int productId)
         {
-            try
+            var products = new List<int>();
+            bool check = false;
+            products.Add(productId);
+           var list = this.repository.GetProductDetails();
+            foreach (var checkproduct in list)
             {
-                using (SqlConnection connection = new SqlConnection(AppSettings.IdentityConnections))
-                {
-                    SqlCommand sqlCommand = new SqlCommand("UpdateProduct", connection); //// Adding Store procedure
-                    sqlCommand.CommandType = System.Data.CommandType.StoredProcedure;
-                    sqlCommand.Parameters.AddWithValue("@ProductName", productInformation.ProductName);
-                    sqlCommand.Parameters.AddWithValue("@Price", productInformation.Price);
-                    sqlCommand.Parameters.AddWithValue("@Quantity", productInformation.Quantity);
-                    sqlCommand.Parameters.AddWithValue("@TotalAmount", productInformation.TotalAmount);
-                    sqlCommand.Parameters.AddWithValue("@ProductId", productInformation.ProductId);
-                    connection.Open();
-                    sqlCommand.ExecuteNonQuery();
-                    connection.Close();
-                }
-                //// Calling SendEmail Method
                
+                if (checkproduct.ProductId == productId)
+                {
+                    check = true;
+                }
             }
-            catch (Exception exception)
+
+            return check;
+        }
+
+        /// <summary>
+        /// DeleteProduct the product.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>
+        /// boolean result
+        /// </returns>
+        public async Task<bool> DeleteProduct(IFormFile file)
+        {
+            bool deleteProduct;
+            var list = new List<ProductInformation>();
+            using (var stream = new MemoryStream())
             {
-                throw new Exception(exception.Message);
+               await file.CopyToAsync(stream);
+
+                using (var package = new ExcelPackage(stream))
+                {
+                    OfficeOpenXml.ExcelWorksheet worksheet = package.Workbook.Worksheets[0];
+                    var rowCount = worksheet.Dimension.Rows;
+                    //// Iterate Records in Excel
+                    for (int row = 2; row <= rowCount; row++)
+                    {
+                        list.Add(new ProductInformation
+                        {
+                            ProductId = int.Parse(worksheet.Cells[row, 1].Value.ToString().Trim()),
+                            ProductName = worksheet.Cells[row, 2].Value.ToString().Trim(),
+                            Price = int.Parse(worksheet.Cells[row, 3].Value.ToString().Trim()),
+                            Quantity = int.Parse(worksheet.Cells[row, 4].Value.ToString().Trim())
+
+                        });
+                    }
+                }
+                deleteProduct = await this.repository.DeleteProduct(list);
             }
+            return deleteProduct;
         }
     }
 }

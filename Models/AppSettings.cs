@@ -26,7 +26,7 @@
         public string FromAddress { get; set; }
 
         /// <summary>
-        /// Gets address.
+        /// Get address.
         /// </summary>
         /// <value>
         /// To address.
