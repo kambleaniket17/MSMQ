@@ -167,8 +167,8 @@
             //// read the Excel file
             using (var stream = new MemoryStream())
             {
-               
-               await file.CopyToAsync(stream);
+
+                await file.CopyToAsync(stream);
 
                 using (var package = new ExcelPackage(stream))
                 {
@@ -180,17 +180,17 @@
                     {
                         list.Add(new ProductInformation
                         {
-                            ProductId = int.Parse(worksheet.Cells[row,1].Value.ToString().Trim()),
+                            ProductId = int.Parse(worksheet.Cells[row, 1].Value.ToString().Trim()),
                             ProductName = worksheet.Cells[row, 2].Value.ToString().Trim(),
                             Price = int.Parse(worksheet.Cells[row, 3].Value.ToString().Trim()),
-                            Quantity = int.Parse(worksheet.Cells[row,4].Value.ToString().Trim())
-                          
+                            Quantity = int.Parse(worksheet.Cells[row, 4].Value.ToString().Trim())
+
                         });
-                       
+
                     }
-                   foreach(var product in list)
+                    foreach (var product in list)
                     {
-                        if(product.Quantity >= 1)
+                        if (product.Quantity >= 1)
                         {
                             product.TotalAmount = product.Quantity * product.Price;
                         }
@@ -199,8 +199,8 @@
 
                 }
             }
-           return await this.repository.AddProduct(products);
-           
+            return await this.repository.AddProduct(products);
+
         }
 
         /// <summary>
@@ -212,7 +212,7 @@
         /// </returns>
         public async Task<List<bool>> UpdateProduct(IFormFile file)
         {
-           // bool updateproductResult;
+            // bool updateproductResult;
             var list = new List<ProductInformation>();
             var products = new List<ProductInformation>();
             var addProducts = new List<ProductInformation>();
@@ -220,8 +220,8 @@
             var response = new List<bool>();
             using (var stream = new MemoryStream())
             {
-               await file.CopyToAsync(stream);
-                
+                await file.CopyToAsync(stream);
+
                 using (var package = new ExcelPackage(stream))
                 {
                     //// Create Excelsheet
@@ -249,14 +249,14 @@
                         products.Add(product);
                     }
                 }
-               // list.Clear();
-               // list = this.repository.GetProductDetails();
+                // list.Clear();
+                // list = this.repository.GetProductDetails();
 
-              //  var abc = list.Except(products);
+                //  var abc = list.Except(products);
                 foreach (var product in products)
                 {
-                   var result = CheckProduct(product.ProductId);
-                    if(result == true)
+                    var result = CheckProduct(product.ProductId);
+                    if (result == true)
                     {
                         updateProducts.Add(product);
                     }
@@ -264,9 +264,9 @@
                     {
                         addProducts.Add(product);
                     }
-                    
+
                 }
-                  response.Add(await this.repository.AddProduct(addProducts));
+                response.Add(await this.repository.AddProduct(addProducts));
                 response.Add(await this.repository.UpdateProduct(updateProducts));
             }
             return response;
@@ -282,10 +282,10 @@
             var products = new List<int>();
             bool check = false;
             products.Add(productId);
-           var list = this.repository.GetProductDetails();
+            var list = this.repository.GetProductDetails();
             foreach (var checkproduct in list)
             {
-               
+
                 if (checkproduct.ProductId == productId)
                 {
                     check = true;
@@ -308,7 +308,7 @@
             var list = new List<ProductInformation>();
             using (var stream = new MemoryStream())
             {
-               await file.CopyToAsync(stream);
+                await file.CopyToAsync(stream);
 
                 using (var package = new ExcelPackage(stream))
                 {
@@ -330,6 +330,18 @@
                 deleteProduct = await this.repository.DeleteProduct(list);
             }
             return deleteProduct;
+        }
+
+        public IEnumerable<ProductInformation> GetProduct()
+        {
+            try
+            {
+                return repository.GetProductDetails();
+            }
+            catch (Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
         }
     }
 }

@@ -487,7 +487,7 @@
         /// </summary>
         /// <param name="merchant">productInformation</param>
         public async Task<bool> AddProduct(List<ProductInformation> products)
-        {
+            {
 
             try
             {
@@ -619,5 +619,7 @@
                 throw new Exception(exception.Message);
             }
     }
+
+        
     }
 }

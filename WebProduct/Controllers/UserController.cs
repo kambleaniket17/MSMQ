@@ -144,5 +144,21 @@
           
         }
 
+        [HttpGet]
+        [Route("getProducts")]
+        public IEnumerable<ProductInformation> GetProduct()
+        {
+            try
+            {
+                var result = this.getCustomer.GetProduct();
+                return result;
+            }
+            catch (Exception exception)
+            {
+                throw new Exception(exception.Message);
+            }
+
+        }
+
     }
 }

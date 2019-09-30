@@ -71,6 +71,13 @@
         /// <param name="file">The file.</param>
         /// <returns>boolean Result</returns>
         Task<bool> DeleteProduct(IFormFile file);
-        
+
+        /// <summary>
+        /// Gets the product.
+        /// </summary>
+        /// <param name="file">The file.</param>
+        /// <returns>List Of Products</returns>
+        IEnumerable<ProductInformation> GetProduct();
+
     }
 }
